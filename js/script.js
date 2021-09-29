@@ -1,11 +1,11 @@
-//Global variables
 const overview = document.querySelector(".overview");
 const username = "emilychuah";
 const repoList = document.querySelector(".repo-list");
 const allReposContainer = document.querySelector(".repos");
 const repoData = document.querySelector(".repo-data");
+const viewReposButton = document.querySelector(".view-repos");
+const filterInput = document.querySelector(".filter-repos");
 
-//Fetch API JSON Data
 const getUserInfo = async () => {
     const fetchUserInfo = await fetch(`https://api.github.com/users/${username}`);
     const userData = await fetchUserInfo.json();
@@ -14,8 +14,6 @@ const getUserInfo = async () => {
 
 getUserInfo();
 
-
-//Fetch and display user information
 const displayUserInfo = (data) => {
     const div = document.createElement("div");
     div.classList.add("user-info");
@@ -34,15 +32,14 @@ const displayUserInfo = (data) => {
     getRepos();
 };
 
-//Fetch repos
 const getRepos = async () => {
     const fetchRepos = await fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=100`);
     const repoData = await fetchRepos.json();
     displayRepos(repoData);
 };
 
-//Display info about the repos
 const displayRepos = (repos) => {
+    filterInput.classList.remove("hide");
     for (const repo of repos) {
         const repoItem = document.createElement("li");
         repoItem.classList.add("repo");
@@ -51,7 +48,6 @@ const displayRepos = (repos) => {
     }
 };
 
-//A click event to obtain repo name
 repoList.addEventListener("click", (e) => {
     if (e.target.matches("h3")) {
         const repoName = e.target.innerText;
@@ -59,7 +55,6 @@ repoList.addEventListener("click", (e) => {
     }
 });
 
-//Fetch specific repo info
 const getRepoInfo = async (repoName) => {
     const fetchRepoInfo = await fetch(`https://api.github.com/repos/${username}/${repoName}`);
     const repoInfo = await fetchRepoInfo.json();
@@ -75,11 +70,12 @@ const getRepoInfo = async (repoName) => {
     displayRepoInfo(repoInfo, languages);
 };
 
-//Display specific repo info
 const displayRepoInfo = (repoInfo, languages) => {
+    allReposContainer.classList.add("hide"); 
     repoData.innerHTML = "";
     repoData.classList.remove("hide");
-    allReposContainer.classList.add("hide"); 
+    viewReposButton.classList.remove("hide");
+
     const div = document.createElement("div");
     div.innerHTML = `
         <h3>Name: ${repoInfo.name}</h3>
@@ -88,5 +84,26 @@ const displayRepoInfo = (repoInfo, languages) => {
         <p>Languages: ${languages.join(", ")}</p>
         <a class="visit" href="${repoInfo.html_url}" target="_blank" rel="noreferrer noopener">View Repo on GitHub!</a>
         `;
-        repoData.append(div);
+    repoData.append(div);
 };
+
+viewReposButton.addEventListener("click", () => {
+    repoData.classList.add("hide");
+    viewReposButton.classList.add("hide");
+    allReposContainer.classList.remove("hide");
+});
+
+filterInput.addEventListener("input", (e) => {
+    const searchText = e.target.value;
+    const repos = document.querySelectorAll(".repo");
+    const lowerSearchText = searchText.toLowerCase();
+    
+    for (const repo of repos) {
+        const lowerRepoText = repo.innerText.toLowerCase();
+        if (lowerRepoText.includes(lowerSearchText)) {
+            repo.classList.remove("hide");
+        } else {
+            repo.classList.add("hide");
+        }
+    }
+});
